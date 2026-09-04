@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=330" />
+  <link rel="stylesheet" href="./styles.css?v=331" />
 </head>
 <body>
   <div id="app"><div class="boot"><div class="brand-flame">🔥</div><div>A FUEGO ERP</div><small>Lighting the grill...</small></div></div>
@@ -25,7 +25,7 @@
         if (window.__AFUEGO_ERROR_SHOWN__) return;
         window.__AFUEGO_ERROR_SHOWN__ = true;
         window.__AFUEGO_READY__ = true;
-        app.innerHTML = `<div class="boot"><div class="brand-flame">⚠️</div><div>${escapeHtml(title)}</div><small style="opacity:.6">Build 3.3.0</small><small style="max-width:680px;white-space:normal">${escapeHtml(detail || 'Unknown error')}</small><button class="btn btn-primary" style="margin-top:16px" onclick="location.reload()">Retry</button></div>`;
+        app.innerHTML = `<div class="boot"><div class="brand-flame">⚠️</div><div>${escapeHtml(title)}</div><small style="opacity:.6">Build 3.3.1</small><small style="max-width:680px;white-space:normal">${escapeHtml(detail || 'Unknown error')}</small><button class="btn btn-primary" style="margin-top:16px" onclick="location.reload()">Retry</button></div>`;
       };
       const loadScript = src => new Promise((resolve, reject) => {
         const script = document.createElement('script');
@@ -36,7 +36,26 @@
         document.head.appendChild(script);
       });
 
-      // Remove the old cache/service worker that could keep serving the broken v3.0 files.
+      // Fix for printable A4 windows:
+      // the ERP creates a blank local window, writes the printable HTML into it,
+      // then opens the browser print dialog. Chromium may return an unusable
+      // reference when noopener/noreferrer are requested for that blank window.
+      const nativeOpen = window.open.bind(window);
+      window.open = (url = '', target = '_blank', features = '') => {
+        const isLocalBlankPrintWindow =
+          (url === '' || url === 'about:blank') && target === '_blank';
+
+        if (isLocalBlankPrintWindow) {
+          const cleanedFeatures = String(features)
+            .split(',')
+            .map(x => x.trim())
+            .filter(x => x && !/^(noopener|noreferrer)$/i.test(x))
+            .join(',');
+          return nativeOpen(url, target, cleanedFeatures);
+        }
+        return nativeOpen(url, target, features);
+      };
+
       if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rows => Promise.all(rows.map(r => r.unregister()))).catch(() => {});
       if ('caches' in window) caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).catch(() => {});
 
@@ -49,14 +68,13 @@
 
       (async () => {
         try {
-          // Official Supabase browser CDN. A second official CDN is used as fallback.
           try {
             await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.5');
           } catch (primaryError) {
             await loadScript('https://unpkg.com/@supabase/supabase-js@2.110.5');
           }
           if (!window.supabase?.createClient) throw new Error('Supabase loaded without createClient.');
-          await loadScript('./app.bundle.js?v=330');
+          await loadScript('./app.bundle.js?v=331');
         } catch (error) {
           showError("COULDN'T LOAD THE APPLICATION", error?.message || error);
         }

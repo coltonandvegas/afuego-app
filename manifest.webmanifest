@@ -1,0 +1,10 @@
+{
+  "name":"A Fuego ERP",
+  "short_name":"A Fuego",
+  "start_url":"/",
+  "display":"standalone",
+  "background_color":"#100d0b",
+  "theme_color":"#100d0b",
+  "description":"ERP and operations cockpit for A Fuego Argentinian Grill",
+  "icons":[{"src":"/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
